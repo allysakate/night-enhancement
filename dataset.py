@@ -3,9 +3,11 @@ from PIL import Image
 import os
 import os.path
 
+
 def has_file_allowed_extension(filename, extensions):
     filename_lower = filename.lower()
     return any(filename_lower.endswith(ext) for ext in extensions)
+
 
 def find_classes(dir):
     classes = [d for d in os.listdir(dir) if os.path.isdir(os.path.join(dir, d))]
@@ -25,12 +27,17 @@ def make_dataset(dir, extensions):
 
     return images
 
+
 class DatasetFolder(data.Dataset):
     def __init__(self, root, loader, extensions, transform=None, target_transform=None):
         samples = make_dataset(root, extensions)
         if len(samples) == 0:
-            raise(RuntimeError("Found 0 files in subfolders of: " + root + "\n"
-                               "Supported extensions are: " + ",".join(extensions)))
+            raise (
+                RuntimeError(
+                    "Found 0 files in subfolders of: " + root + "\n"
+                    "Supported extensions are: " + ",".join(extensions)
+                )
+            )
 
         self.root = root
         self.loader = loader
@@ -54,29 +61,42 @@ class DatasetFolder(data.Dataset):
         return len(self.samples)
 
     def __repr__(self):
-        fmt_str = 'Dataset ' + self.__class__.__name__ + '\n'
-        fmt_str += '    Number of datapoints: {}\n'.format(self.__len__())
-        fmt_str += '    Root Location: {}\n'.format(self.root)
-        tmp = '    Transforms (if any): '
-        fmt_str += '{0}{1}\n'.format(tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
-        tmp = '    Target Transforms (if any): '
-        fmt_str += '{0}{1}'.format(tmp, self.target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp)))
+        fmt_str = "Dataset " + self.__class__.__name__ + "\n"
+        fmt_str += "    Number of datapoints: {}\n".format(self.__len__())
+        fmt_str += "    Root Location: {}\n".format(self.root)
+        tmp = "    Transforms (if any): "
+        fmt_str += "{0}{1}\n".format(
+            tmp, self.transform.__repr__().replace("\n", "\n" + " " * len(tmp))
+        )
+        tmp = "    Target Transforms (if any): "
+        fmt_str += "{0}{1}".format(
+            tmp, self.target_transform.__repr__().replace("\n", "\n" + " " * len(tmp))
+        )
         return fmt_str
 
-IMG_EXTENSIONS = ['.jpg', '.jpeg', '.png', '.ppm', '.bmp', '.pgm', '.tif']
+
+IMG_EXTENSIONS = [".jpg", ".jpeg", ".png", ".ppm", ".bmp", ".pgm", ".tif"]
+
 
 def pil_loader(path):
-    with open(path, 'rb') as f:
+    with open(path, "rb") as f:
         img = Image.open(f)
-        return img.convert('RGB')
+        return img.convert("RGB")
+
 
 def default_loader(path):
     return pil_loader(path)
 
+
 class ImageFolder(DatasetFolder):
-    def __init__(self, root, transform=None, target_transform=None,
-                 loader=default_loader):
-        super(ImageFolder, self).__init__(root, loader, IMG_EXTENSIONS,
-                                          transform=transform,
-                                          target_transform=target_transform)
+    def __init__(
+        self, root, transform=None, target_transform=None, loader=default_loader
+    ):
+        super(ImageFolder, self).__init__(
+            root,
+            loader,
+            IMG_EXTENSIONS,
+            transform=transform,
+            target_transform=target_transform,
+        )
         self.imgs = self.samples

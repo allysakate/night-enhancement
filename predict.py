@@ -4,7 +4,6 @@ import shutil
 import argparse
 from cog import BasePredictor, Path, Input
 from PIL import Image
-from dataset import ImageFolder
 
 from ENHANCENET import ENHANCENET
 from utils import *

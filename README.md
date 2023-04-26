@@ -10,8 +10,8 @@ This is an implementation of the following paper.
 [[Paper]](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136970396.pdf)
 [[Supplementary]](https://www.ecva.net/papers/eccv_2022/papers_ECCV/papers/136970396-supp.pdf)
 [![arXiv](https://img.shields.io/badge/arXiv-Paper-<COLOR>.svg)](https://arxiv.org/abs/2207.10564)
-[[Poster]](https://www.dropbox.com/s/t53xlojok9h3p3p/0982_poster.pdf?dl=0) 
-[[Slides]](https://www.dropbox.com/s/z2u4zx6u1aojiuz/0982_slides.pdf?dl=0) 
+[[Poster]](https://www.dropbox.com/s/t53xlojok9h3p3p/0982_poster.pdf?dl=0)
+[[Slides]](https://www.dropbox.com/s/z2u4zx6u1aojiuz/0982_slides.pdf?dl=0)
 [[Link]](https://mp.weixin.qq.com/s/5wjV6R95SrQHXxqMnENAAw)
 
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/unsupervised-night-image-enhancement-when/low-light-image-enhancement-on-lol)](https://paperswithcode.com/sota/low-light-image-enhancement-on-lol?p=unsupervised-night-image-enhancement-when)
@@ -43,7 +43,7 @@ We captured images with dimmer light as the reference images.
 
 
 3. [GTA5 nighttime fog](https://www.dropbox.com/sh/gfw44ttcu5czrbg/AACr2GZWvAdwYPV0wgs7s00xa?dl=0) <br>
-Synthetic GTA5 nighttime fog data:<br> 
+Synthetic GTA5 nighttime fog data:<br>
 Wending Yan, Robby T. Tan, Dengxin Dai. ["Nighttime Defogging Using High-Low Frequency Decomposition and Grayscale-Color Networks"](https://www.ecva.net/papers/eccv_2020/papers_ECCV/papers/123570460.pdf), ECCV, 2020.
 
 <p align="left">
@@ -74,7 +74,7 @@ We use LOL-real as it is larger and more diverse.
 ## Pre-trained Model
 
 1. Download the [pre-trained LOL model](https://www.dropbox.com/s/0ykpsm1d48f74ao/LOL_params_0900000.pt?dl=0), put in ./results/LOL/model/
-2. Put the test images in ./LOL/ 
+2. Put the test images in ./LOL/
 
 ## Test
 ```
@@ -90,7 +90,7 @@ python main.py
 
 Get the following Table 4 in the main paper on the LOL-Real dataset (100 test images).
 
-|Learning| Method | PSNR | SSIM | 
+|Learning| Method | PSNR | SSIM |
 |--------|--------|------|------ |
 | Unsupervised Learning| **Ours** | **25.51** |**0.8015**|
 | N/A | Input | 9.72 | 0.1752|
@@ -106,7 +106,7 @@ PSNR: 20.85 (vs EnlightenGAN's 18.23), SSIM: 0.7243 (vs EnlightenGAN's 0.61)
 2. [LOL-test Results](https://www.dropbox.com/sh/la21ocjk14dtg9t/AABOBsCQ39Oml33fItqX5koFa?dl=0)<br>
 
 Get the following Table 3 in the main paper on the LOL-test dataset (15 test images).
-|Learning| Method | PSNR | SSIM | 
+|Learning| Method | PSNR | SSIM |
 |--------|--------|------|------ |
 | Unsupervised Learning| **Ours** | **21.521** |**0.7647**|
 | N/A | Input | 7.773 | 0.1259|
@@ -118,12 +118,12 @@ Get the following Table 3 in the main paper on the LOL-test dataset (15 test ima
 
 
 # Light-Effects Suppression Results:
-[Update] We have released decomposition code on Dec 28, 2022. 
-run the code to layer decomposition, output light-effects layer, initial background layer.    
+[Update] We have released decomposition code on Dec 28, 2022.
+run the code to layer decomposition, output light-effects layer, initial background layer.
 ```
 demo_decomposition.m
 ```
-[Background Results](https://www.dropbox.com/sh/bis4350df85gz0e/AAC7wY92U9K5JW3aSaD0mvcya?dl=0) | 
+[Background Results](https://www.dropbox.com/sh/bis4350df85gz0e/AAC7wY92U9K5JW3aSaD0mvcya?dl=0) |
 [Light-Effects Results](https://www.dropbox.com/sh/d7myjujl9gwotkz/AAA0iSsO1FbWqNkbB6QR-sLCa?dl=0) |
 [Shading Results](https://www.dropbox.com/sh/venya8tvetyiv07/AABud1xlWGVquKptBsIZ0jxpa?dl=0)
 
@@ -150,7 +150,7 @@ checkGrayMerge.m
   <img width="350" src="VGG_code/results_VGGfeatures/DSC01607_I_GrayBest.png">
 </p>
 
-2. Download the [fine-tuned VGG model](https://www.dropbox.com/s/xzzoruz1i6m7mm0/model_best.tar?dl=0) (fine-tuned on [ExDark (Exclusively Dark Image Dataset)](https://github.com/cs-chan/Exclusively-Dark-Image-Dataset)), put in 
+2. Download the [fine-tuned VGG model](https://www.dropbox.com/s/xzzoruz1i6m7mm0/model_best.tar?dl=0) (fine-tuned on [ExDark (Exclusively Dark Image Dataset)](https://github.com/cs-chan/Exclusively-Dark-Image-Dataset)), put in
 ./VGG_code/ckpts/vgg16_featureextractFalse_ExDark/nets/model_best.tar
 
 3. obtain structure features
@@ -165,7 +165,7 @@ python test_VGGfeatures.py
 
 
 ### Citations
-If this work is useful for your research, please cite our paper. 
+If this work is useful for your research, please cite our paper.
 ```
 @inproceedings{jin2022unsupervised,
   title={Unsupervised night image enhancement: When layer decomposition meets light-effects suppression},
@@ -177,7 +177,7 @@ If this work is useful for your research, please cite our paper.
 }
 ```
 
-If light-effects data is useful for your research, please cite our paper. 
+If light-effects data is useful for your research, please cite our paper.
 ```
 @inproceedings{sharma2021nighttime,
 	title={Nighttime Visibility Enhancement by Increasing the Dynamic Range and Suppression of Light Effects},
@@ -188,7 +188,7 @@ If light-effects data is useful for your research, please cite our paper.
 }
 ```
 
-If GTA5 nighttime fog data is useful for your research, please cite our paper. 
+If GTA5 nighttime fog data is useful for your research, please cite our paper.
 ```
 @inproceedings{yan2020nighttime,
 	title={Nighttime defogging using high-low frequency decomposition and grayscale-color networks},
