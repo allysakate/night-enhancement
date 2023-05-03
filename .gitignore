@@ -130,6 +130,7 @@ dmypy.json
 
 # Images/Videos/Text
 *.jpg
+*.JPG
 *.png
 *.mp4
 *.webm
