@@ -315,7 +315,6 @@ def demo(args, dle_net, optimizer_dle_net, inputs):
     dle_net.train()
 
     img_in = Variable(torch.FloatTensor(inputs["img_in"])).cuda()
-    optimizer_dle_net.zero_grad()
 
     le_pred = dle_net(img_in)
     dle_pred = img_in + le_pred
@@ -343,8 +342,9 @@ def demo(args, dle_net, optimizer_dle_net, inputs):
     loss = lambda_recon * recon_loss + lambda_cc * cc_loss
     loss += lambda_excl * excl_loss(dle_pred, le_pred)
     loss += lambda_smooth * le_smooth_loss
-    loss.backward()
 
+    optimizer_dle_net.zero_grad()
+    loss.backward()
     optimizer_dle_net.step()
 
     imgs_dict = {}
