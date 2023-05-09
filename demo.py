@@ -1,16 +1,20 @@
+import os
+import time
+import argparse
+import cv2
+import numpy as np
+from PIL import Image
+from tqdm import tqdm
 import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 import torch.optim as optim
-import numpy as np
-import os
-import argparse
-import cv2
-from tqdm import tqdm
+import torchvision.transforms as transforms
 from torchvision import utils as vutils
 import load_data as DA
-from Net import *
+from net_visualize import VizNet
+from Net import Net
 from guided_filter_pytorch.guided_filter import GuidedFilter
 from skimage.metrics import peak_signal_noise_ratio as compare_psnr
 from skimage.metrics import structural_similarity as compare_ssim
@@ -18,6 +22,18 @@ from skimage.metrics import structural_similarity as compare_ssim
 
 def get_arguments():
     parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--proc",
+        default="train",
+        choices=["train", "test", "visualize"],
+        help="If process is train, test or visualize",
+    )
+    parser.add_argument(
+        "--pth",
+        type=str,
+        default="dle_net.pth",
+        help="Model pth name",
+    )
     parser.add_argument(
         "--img_name",
         type=str,
@@ -103,7 +119,7 @@ class Vgg16ExDark(torch.nn.Module):
     def __init__(self, load_model=None, requires_grad=False):
         super(Vgg16ExDark, self).__init__()
         # Create the model
-        self.vgg_pretrained_features = visionmodels.vgg16(pretrained=True).features
+        # self.vgg_pretrained_features = visionmodels.vgg16(pretrained=True).features
         if load_model is None:
             print("Vgg16ExDark needs a pre-trained checkpoint!")
             raise Exception
@@ -174,13 +190,11 @@ class StdLoss(nn.Module):
         self.image = nn.Parameter(
             data=torch.cuda.FloatTensor(image), requires_grad=False
         )
-        self.gray_scale = GrayscaleLayer()
+        # self.gray_scale = GrayscaleLayer()
 
     def forward(self, x):
         x = self.gray_scale(x)
-        return self.mse(
-            functional.conv2d(x, self.image), functional.conv2d(x, self.blur)
-        )
+        return self.mse(F.conv2d(x, self.image), F.conv2d(x, self.blur))
 
 
 class ExclusionLoss(nn.Module):
@@ -339,6 +353,8 @@ def demo(args, dle_net, optimizer_dle_net, inputs):
 
 
 if __name__ == "__main__":
+    # get the start time
+    st = time.time()
     args = get_arguments()
 
     args.imgin_dir = args.data_dir
@@ -354,47 +370,93 @@ if __name__ == "__main__":
         channels = 1
     else:
         channels = 3
-    dle_net = Net(input_nc=channels, output_nc=channels)
-    dle_net = nn.DataParallel(dle_net).cuda()
 
-    if args.load_model is not None:
-        dle_net_ckpt_file = args.load_model
-        dle_net.load_state_dict(torch.load(dle_net_ckpt_file)["state_dict"])
+    if args.proc in ["train", "visualize"]:
+        if args.proc == "train":
+            Network = Net
+        else:
+            Network = VizNet
+        dle_net = Network(input_nc=channels, output_nc=channels)
+        dle_net = nn.DataParallel(dle_net).cuda()
 
-    optimizer_dle_net = optim.Adam(
-        dle_net.parameters(), lr=args.learning_rate, betas=(0.9, 0.999)
-    )
+        if args.load_model is not None:
+            dle_net_ckpt_file = args.load_model
+            dle_net.load_state_dict(torch.load(dle_net_ckpt_file)["state_dict"])
 
-    da_list = sorted(
-        [
-            (args.imgin_dir + file)
-            for file in os.listdir(args.imgin_dir)
-            if file == args.img_name
-        ]
-    )
-    demo_list = da_list
-    demo_list = demo_list * args.iters
+        optimizer_dle_net = optim.Adam(
+            dle_net.parameters(), lr=args.learning_rate, betas=(0.9, 0.999)
+        )
 
-    Dele_Loader = torch.utils.data.DataLoader(
-        DA.loadImgs(args, demo_list, mode="demo"),
-        batch_size=1,
-        shuffle=True,
-        num_workers=16,
-        drop_last=False,
-    )
-    count_idx = 0
-    tbar = tqdm(Dele_Loader)
-    for batch_idx, inputs in enumerate(tbar):
-        count_idx = count_idx + 1
-        imgs_dict = demo(args, dle_net, optimizer_dle_net, inputs)
-        tbar.update()
+        da_list = sorted(
+            [
+                (args.imgin_dir + file)
+                for file in os.listdir(args.imgin_dir)
+                if file == args.img_name
+            ]
+        )
+        demo_list = da_list
+        demo_list = demo_list * args.iters
 
-        if count_idx % 60 == 0:
-            inout = os.path.join(args.imgs_dir, args.img_name[:-4] + "_in_out")
-            out = os.path.join(args.imgs_dir, args.img_name[:-4] + "_out")
-            save_img = torch.cat(
-                (inputs["img_in"][0, :, :, :], imgs_dict["dle_pred"][0, :, :, :]), dim=2
-            )
-            out_img = imgs_dict["dle_pred"][0, :, :, :]
-            vutils.save_image(save_img, inout + ".png")
-            vutils.save_image(out_img, out + ".png")
+        Dele_Loader = torch.utils.data.DataLoader(
+            DA.loadImgs(args, demo_list, mode="demo"),
+            batch_size=1,
+            shuffle=True,
+            num_workers=8,
+            drop_last=False,
+        )
+        count_idx = 0
+        tbar = tqdm(Dele_Loader)
+        for batch_idx, inputs in enumerate(tbar):
+            count_idx = count_idx + 1
+            imgs_dict = demo(args, dle_net, optimizer_dle_net, inputs)
+            tbar.update()
+
+            if count_idx % 10 == 0:
+                out_path = os.path.join(args.imgs_dir, args.img_name[:-4])
+                if not os.path.exists(out_path):
+                    os.makedirs(out_path)
+
+                inout = os.path.join(out_path, f"{count_idx}.jpg")
+                # out = os.path.join(args.imgs_dir, args.img_name[:-4] + "_out")
+                save_img = torch.cat(
+                    (inputs["img_in"][0, :, :, :], imgs_dict["dle_pred"][0, :, :, :]),
+                    dim=2,
+                )
+                # out_img = imgs_dict["dle_pred"][0, :, :, :]
+                vutils.save_image(save_img, inout)
+                # vutils.save_image(out_img, out + ".png")
+
+        # Print model's state_dict
+        print("Model's state_dict:")
+        for param_tensor in dle_net.state_dict():
+            print(param_tensor, "\t", dle_net.state_dict()[param_tensor].size())
+
+        torch.save(dle_net.state_dict(), args.pth)
+    elif args.proc == "test":
+        model = Net(input_nc=channels, output_nc=channels)
+        model = nn.DataParallel(model).cuda()
+        model.load_state_dict(torch.load(args.pth))
+        model.eval()
+        with torch.no_grad():
+            image = Image.open(args.imgin_dir + args.img_name)
+            transform = transforms.Compose([transforms.PILToTensor()])
+            img_tensor = transform(image).to(torch.float32).unsqueeze(0).cuda()
+            print(img_tensor.shape)
+            le_pred = model(img_tensor)
+            le_pred = le_pred.detach().cpu()
+            out_img = le_pred[0, :, :, :]
+            print(le_pred.shape, type(le_pred))
+
+        out_path = os.path.join(args.imgs_dir, args.img_name[:-4])
+        if not os.path.exists(out_path):
+            os.makedirs(out_path)
+
+        pred_path = out_path + "_pred.jpg"
+        vutils.save_image(le_pred, pred_path)
+
+    # get the end time
+    et = time.time()
+
+    # get the execution time
+    elapsed_time = et - st
+    print("Execution time:", elapsed_time, "seconds")
